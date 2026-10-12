@@ -1,69 +1,84 @@
-# Water Jug Problem Solver
+# Smart City Water Allocation System + Water Jug Problem Solver
 
-A small, from-scratch Python implementation of state-space search for the Water Jug Problem. The program models each configuration as a state `(amount_in_A, amount_in_B)` and each legal operation as a state transition.
+A Python-based Artificial Intelligence project combining state-space search, a Constraint Satisfaction Problem (CSP), constraint propagation, and rule-based diagnosis.
 
-## 1. Problem
+The project extends a classic Water Jug Problem Solver into a simplified Smart City Water Allocation System. It demonstrates water allocation under normal and drought conditions, compares search effort with and without constraint propagation, and explains a sample leak diagnosis.
 
-Given two jugs with capacities `A` and `B`, starting empty, find an ordered sequence of **fill**, **empty**, and **pour** operations that leaves the target volume in either jug.
+> **Scope:** This is an educational simulation using illustrative data. It is not a real water-distribution controller, and its certainty factors are not calibrated probabilities.
 
-### State representation
-`(x, y)` where:
-- `x` = current litres in jug A
-- `y` = current litres in jug B
+## 1. Project objectives
 
-### Actions
-- Fill A
-- Fill B
-- Empty A
-- Empty B
-- Pour A -> B
-- Pour B -> A
+- Solve the classic Water Jug Problem using Breadth-First Search (BFS) and Depth-First Search (DFS).
+- Allocate water from multiple reservoirs to hospital and residential zones.
+- Respect reservoir capacities, pipeline limits, zone demand limits, and minimum daily supply constraints.
+- Compare CSP search effort with and without constraint propagation.
+- Apply rule-based reasoning to identify possible leaks or water shortages.
+- Produce understandable output that can be checked and reproduced.
 
-### Goal test
-A state is a goal when `target in (x, y)`.
-
-### Cost
-Every action has unit cost, so BFS returns a shortest-operation solution.
-
-## 2. Approach
-
-This repository implements both algorithms without using a search library:
-
-- **BFS** uses a FIFO queue and returns an optimal (shortest) action sequence when each action has equal cost.
-- **DFS** uses an explicit LIFO stack and returns a solution when one is found, but it is not guaranteed to be shortest.
-
-A `visited` set prevents repeated states. Parent pointers reconstruct the ordered action list after a goal is found.
-
-A standard gcd reachability check is used before searching. If `target` is not divisible by `gcd(A, B)`, the instance is impossible.
-
-## 3. Personalisation / anti-copy variant
-
-Use your own roll/register number and the **exact variant id assigned by your instructor**. The variant generator uses `random.Random(seed)` where `seed = roll_number * 1009 + variant_id`, so the same student inputs always reproduce the same capacities and target.
-
-Do **not** submit the example values from this README as your personalised variant. Replace the example command with your own values.
-
-## 4. Requirements
+## 2. Technologies
 
 - Python 3.10+
-- `pytest`
-- `matplotlib` (only needed for the benchmark plot)
+- `pytest` for automated tests
+- `matplotlib` for existing benchmark plots
+- Python standard library for the allocation and diagnosis logic
 
-## 5. Clean-clone setup
+Install dependencies using `python -m pip install -r requirements.txt`.
+
+## 3. Project structure
+
+```text
+water_jug_solver/
+├── src/
+│   ├── __init__.py
+│   ├── benchmark.py
+│   ├── diagnosis.py
+│   ├── main.py
+│   ├── make_plot.py
+│   ├── make_report.py
+│   ├── project_config.py
+│   ├── smart_city_demo.py
+│   ├── solver.py
+│   ├── variant.py
+│   └── water_allocation.py
+├── tests/
+│   ├── test_diagnosis.py
+│   ├── test_solver.py
+│   └── test_water_allocation.py
+├── docs/
+│   ├── report.pdf
+│   ├── bfs_vs_dfs.png
+│   └── runtime_comparison.png
+├── results/
+│   └── smart_city_demo.txt
+├── README.md
+├── requirements.txt
+├── .gitignore
+└── LICENSE
+```
+
+## 4. Setup from a fresh clone
+
+Clone your repository and enter the project root directory:
 
 ```bash
 git clone <YOUR-REPOSITORY-URL>
 cd water_jug_solver
+```
+
+Create a virtual environment:
+
+```bash
 python -m venv .venv
 ```
 
-Activate the environment:
+Activate it on Windows PowerShell:
 
-**Windows PowerShell**
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-**Linux/macOS**
+On Linux or macOS:
+
 ```bash
 source .venv/bin/activate
 ```
@@ -74,136 +89,181 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Run tests:
+Run the automated tests:
 
 ```bash
-python -m pytest -q
+python -m pytest -v
 ```
 
-## 6. Run the solver
+The current development version passes **12 tests** on the author's machine. Run the tests again after cloning; results may differ if the code or environment changes.
 
-### Direct problem input
+## 5. Original Water Jug Problem Solver
 
-Example: classic 4 L / 3 L jugs, target 2 L.
+Each state is represented as `(x, y)`, where `x` and `y` are the current amounts in jugs A and B.
+
+Supported actions:
+
+- Fill jug A or B
+- Empty jug A or B
+- Pour A into B
+- Pour B into A
+
+The goal is reached when the target amount is present in either jug.
+
+### Run BFS
 
 ```bash
 python src/main.py --capacity-a 4 --capacity-b 3 --target 2 --method bfs
 ```
 
-Try DFS:
+BFS explores states using a FIFO queue and returns a shortest action sequence when all actions have equal cost.
+
+### Run DFS
 
 ```bash
 python src/main.py --capacity-a 4 --capacity-b 3 --target 2 --method dfs
 ```
 
+DFS explores using a stack. It can find a solution, but it does not guarantee the shortest solution.
+
 ### Personalised variant
 
-Replace the example roll number and variant id with your own:
+Use your own register number and the exact variant ID assigned by your instructor:
 
 ```bash
-python src/main.py --roll-number 123456 --variant-id 7 --method bfs
+python src/main.py --roll-number YOUR_REGISTER_NUMBER --variant-id YOUR_ASSIGNED_VARIANT --method bfs
 ```
 
-## 7. Sample input/output
+Replace both placeholders with actual integer values before running the command. The variant generator uses a deterministic seed so the same inputs reproduce the same variant.
 
-Sample command:
+## 6. Smart City Water Allocation System
+
+The allocation module models a simplified city with two reservoirs and three service zones:
+
+- Hospital
+- Residential East
+- Residential West
+
+The CSP solver searches for an allocation that satisfies the configured constraints.
+
+### Constraints
+
+1. Reservoir use must not exceed available capacity.
+2. Each pipeline must stay within its configured limit.
+3. Every zone must receive at least its configured minimum allocation.
+4. Zone allocations must not exceed configured demand.
+5. Hospital priority influences the search order; the implementation should not be interpreted as a formal proof of globally optimal fairness.
+
+The model uses allocation units of **10 kL per day**. Its population and demand values are illustrative and should not be interpreted as actual city data.
+
+### Run the complete demonstration
+
+From the project root:
+
+```bash
+python -m src.smart_city_demo
+```
+
+This runs normal and drought scenarios, compares search effort with and without propagation, and demonstrates the leak-diagnosis rule.
+
+Save the output to a text file:
+
+```powershell
+python -m src.smart_city_demo | Tee-Object -FilePath results\smart_city_demo.txt
+```
+
+## 7. Sample allocation results
+
+The current demonstration produces the following results:
+
+| Zone | Normal supply | Drought supply |
+|---|---:|---:|
+| Hospital | 60 kL/day | 40 kL/day |
+| Residential East | 50 kL/day | 30 kL/day |
+| Residential West | 40 kL/day | 20 kL/day |
+| **Total** | **150 kL/day** | **90 kL/day** |
+
+These are the results from the current configured scenarios, not real-world recommendations.
+
+The normal scenario has 150 kL/day of reservoir capacity available. The drought scenario has 90 kL/day available. The current solutions use all available capacity while respecting the configured constraints.
+
+## 8. Constraint propagation experiment
+
+The current program reports these node counts:
+
+| Scenario | Without propagation | With propagation |
+|---|---:|---:|
+| Normal | 475 | 6 |
+| Drought | 1,377 | 7 |
+
+For these runs, propagation reduces the number of visited search nodes substantially. These counts are specific to the current implementation and configuration. Node counts are not the same as elapsed runtime, and the results do not guarantee the same improvement for every CSP.
+
+## 9. Rule-based diagnosis
+
+The diagnosis module includes example rules such as:
 
 ```text
-python src/main.py --capacity-a 4 --capacity-b 3 --target 2 --method bfs
+PressureLow AND FlowHigh
+    -> LeakSuspected (CF = 0.8)
+
+ReservoirLow AND SupplyInsufficient
+    -> WaterShortageSuspected (CF = 0.9)
 ```
 
-Sample output (exact runtime may differ):
+For example, the demo supplies low-pressure and high-flow observations and prints `LeakSuspected` along with the rule explanation.
 
-```text
-Method: BFS
-Problem: A=4L, B=3L, target=2L
-0. Start -> (0, 0)
-1.       Fill B -> (0, 3)
-2.   Pour B -> A -> (3, 0)
-3.       Fill B -> (3, 3)
-4.   Pour B -> A -> (4, 2)
-Steps: 4
-Nodes expanded: <machine-dependent order, see your run>
-Runtime: <machine-dependent> ms
-```
+The certainty factors are illustrative confidence values used to demonstrate rule-based reasoning. They are not probabilities, sensor-calibrated confidence values, or evidence that a physical leak actually exists.
 
-## 8. Benchmark and plots
+## 10. Existing benchmark and plots
 
-Generate BFS/DFS comparison data:
+Run the existing BFS/DFS benchmark:
 
 ```bash
 python src/benchmark.py
 ```
 
-Generate plots used by the report:
+Generate the existing plots:
 
 ```bash
 python src/make_plot.py
 ```
 
-Outputs:
-- `results/benchmark.csv`
-- `docs/bfs_vs_dfs.png`
-- `docs/runtime_comparison.png`
+The existing scripts produce benchmark data and comparison plots. Check their output paths and repository status before committing generated files.
 
-## 9. Repository structure
+## 11. Complexity notes
 
-```text
-water_jug_solver/
-├── src/
-│   ├── __init__.py
-│   ├── benchmark.py
-│   ├── main.py
-│   ├── make_plot.py
-│   ├── solver.py
-│   └── variant.py
-├── tests/
-│   └── test_solver.py
-├── docs/
-│   ├── report.pdf
-│   ├── bfs_vs_dfs.png
-│   └── runtime_comparison.png
-├── results/
-│   └── benchmark.csv
-├── README.md
-├── requirements.txt
-├── .gitignore
-└── LICENSE
-```
+For the Water Jug Problem, let `S` be the number of reachable states. Each state has at most six legal actions.
 
-## 10. Complexity
+- BFS has `O(S)` time and `O(S)` space on this bounded graph.
+- DFS has `O(S)` worst-case time and `O(S)` space when tracking visited states, parents, and the stack.
 
-Let `S <= (A+1)(B+1)` be the number of reachable states. Each state has at most six outgoing actions.
+For the allocation CSP, practical search effort depends on variable domains, constraints, variable ordering, and propagation. The observed node counts are experimental results, not a general complexity guarantee.
 
-- **BFS:** `O(S)` time and `O(S)` space for this bounded state graph.
-- **DFS:** `O(S)` time in the worst case and `O(S)` space for the visited set, parent map, and stack.
+## 12. Limitations and future improvements
 
-The practical state-space size is small because each jug can hold only a finite number of integer litre values.
+- The water-allocation data is synthetic and simplified.
+- The model does not represent a full real-world hydraulic network.
+- The hospital-priority heuristic is not a formal optimization objective.
+- Fairness could be improved with explicit per-capita reporting and a defined fairness objective.
+- Diagnosis rules require real sensor data and validation before operational use.
+- The certainty factors have not been calibrated against observed incidents.
+- A future interface could use Streamlit to let users change reservoir capacity, demand, and sensor readings.
 
-## 11. Limitations
+## 13. References and academic honesty
 
-The implementation assumes integer litre capacities and integer states. It does not model measurement noise, fractional litre actions, or real-world physical constraints.
+Before submission, add the specific course notes, textbooks, papers, or reliable online sources you actually consulted for BFS, DFS, constraint satisfaction, constraint propagation, and rule-based expert systems.
 
-## 12. Viva preparation
+Do not list a source as consulted unless you have checked it. Review and understand every submitted module, test, and result, and follow your institution's policy for disclosing AI assistance.
 
-Be ready to explain:
+## 14. Submission checklist
 
-1. Why `(x, y)` is a sufficient state description.
-2. Why pour operations use `min(source, destination_space)`.
-3. Why `visited` is necessary.
-4. Why BFS is optimal for unit-cost actions and DFS is not guaranteed optimal.
-5. How parent pointers reconstruct the ordered operation list.
-6. Why the gcd condition can reject impossible instances before search.
-
-## 13. Sources / honesty note
-
-Concepts are based on standard introductory AI state-space search and graph-search material. For submission, add the textbook/course notes or web sources you actually consulted and keep the honesty note accurate. This repository was prepared with AI assistance; the student should review, test, understand, and modify the code before submission.
-
-## 14. Version-control checklist
-
-Before submission:
-
-- Make at least 3 meaningful commits across 2+ calendar days under your own GitHub identity.
-- Tag the final commit `v1.0`.
-- Check `git log --oneline --decorate` and `git config user.name/user.email`.
-- Do not commit `.venv`, caches, generated binaries, or large datasets.
+- [ ] Confirm `REGISTER_NUMBER` and `VARIANT_ID` in `src/project_config.py` match your actual assigned values.
+- [ ] Run `python -m pytest -v`.
+- [ ] Run `python -m src.smart_city_demo`.
+- [ ] Update `docs/report.pdf` to describe both the original solver and the Smart City extension.
+- [ ] Check that `README.md`, `requirements.txt`, `.gitignore`, and `LICENSE` are present.
+- [ ] Ensure `.venv`, Python caches, and unnecessary generated files are not committed.
+- [ ] Review `git status` before staging changes.
+- [ ] Make meaningful commits under your own Git identity across at least two calendar days, as required.
+- [ ] Tag the final reviewed version `v1.0`.
+- [ ] Submit the correct GitHub repository URL through your course LMS.
